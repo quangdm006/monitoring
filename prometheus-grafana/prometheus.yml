@@ -1,11 +1,16 @@
 global:
-  scrape_interval: 15s   # thu thập metrics mỗi 15 giây
+  scrape_interval: 15s
 
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ['prometheus:9090']   # ⚠️ sửa localhost → prometheus
 
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
+
+  # 👉 THÊM CÁI NÀY
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8081']
