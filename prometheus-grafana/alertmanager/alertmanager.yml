@@ -1,0 +1,25 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  group_by: ['alertname', 'severity']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+  receiver: 'telegram'
+
+receivers:
+  - name: 'telegram'
+    telegram_configs:
+      - api_url: 'https://api.telegram.org'
+        bot_token: '8771120979:AAH6m7w_NZdAntZ83JIdEAl0POM5ftoRqiY'   # ← Thay bằng bot token (không có "bot" ở đầu)
+        chat_id: -5123978191                        # ← Thay bằng chat_id của group (có dấu trừ)
+        send_resolved: true
+        parse_mode: 'MarkdownV2'
+
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname']

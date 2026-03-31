@@ -1,0 +1,52 @@
+groups:
+  - name: docker_container_alerts
+    rules:
+
+    - alert: ContainerDown
+      expr: absent(container_last_seen{name!=""}) or (time() - container_last_seen{name!=""} > 60)
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Container {{ $labels.name }} is DOWN!"
+        description: "Container {{ $labels.name }} không chạy trong hơn 1 phút. Kiểm tra ngay!"
+
+    - alert: ContainerHighCPU
+      expr: |
+        sum(rate(container_cpu_usage_seconds_total{name!="", image!=""}[5m])) by (name) /
+        sum(container_spec_cpu_quota{name!=""} / container_spec_cpu_period{name!=""}) by (name) * 100 > 80
+      for: 3m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container {{ $labels.name }} CPU cao"
+        description: "CPU usage đạt {{ $value | printf \"%.1f\" }}%. Kiểm tra workload của container."
+
+    - alert: ContainerHighMemory
+      expr: |
+        (sum(container_memory_working_set_bytes{name!=""}) by (name) /
+         sum(container_spec_memory_limit_bytes > 0) by (name) * 100) > 80
+      for: 3m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container {{ $labels.name }} Memory cao"
+        description: "Memory usage đạt {{ $value | printf \"%.1f\" }}%. Nguy cơ OOM Kill."
+
+    - alert: HighDiskUsage
+      expr: (node_filesystem_avail_bytes{fstype=~"ext4|xfs"} / node_filesystem_size_bytes * 100) < 15
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Disk của server sắp đầy"
+        description: "Chỉ còn {{ $value | printf \"%.1f\" }}% dung lượng trống."
+
+    - alert: ContainerRestartTooMany
+      expr: increase(container_start_time_seconds{name!=""}[10m]) > 5
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Container {{ $labels.name }} restart nhiều lần"
+        description: "Container restart hơn 5 lần trong 10 phút. Có thể đang crash loop."

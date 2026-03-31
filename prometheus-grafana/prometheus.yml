@@ -4,13 +4,20 @@ global:
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
-      - targets: ['prometheus:9090']   # ⚠️ sửa localhost → prometheus
+      - targets: ['prometheus:9090']
 
   - job_name: 'node-exporter'
     static_configs:
       - targets: ['node-exporter:9100']
 
-  # 👉 THÊM CÁI NÀY
   - job_name: 'cadvisor'
     static_configs:
       - targets: ['cadvisor:8080']
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ['alertmanager:9093']
+
+rule_files:
+  - "/etc/prometheus/rules/*.yml"
